@@ -48,6 +48,10 @@ function processStyleTag(allLines) {
     const startIndex = allLines.findIndex(l => l.trim().startsWith('<style>'));
     const endIndex = allLines.findIndex(l => l.trim().startsWith('</style>'));
 
+    if(startIndex === -1 || endIndex === -1) {
+        return allLines;
+    }
+
     let styleTagContent = allLines.slice(startIndex + 1, endIndex);
     let currentIndex = -1;
     
@@ -87,6 +91,12 @@ function classToInlineStyle(txt) {
     if(!hasClassAttr) {
         return txt;
     }
+
+    const noStyleTag = !styleContent.cssProps || styleContent.cssProps.length === 0;
+    if(noStyleTag) {
+        alert('Some elements have css classes, but no <style> tag was found to resolve class properties');
+        return;
+    }
     
     let classMatchString = txt.match(classRegex)[0];
     let classAttr = classMatchString.match(/"([^"]*)"/g)[0];
@@ -95,6 +105,11 @@ function classToInlineStyle(txt) {
     let styleString = 'style="';
     classes.forEach(c => {
         const classMatch = styleContent.find(x => x.name === c);
+        if(!classMatch) {
+            const errorMsg = `Css class '${c}' not present in style tag`;
+            alert(errorMsg);
+            throw new Error(errorMsg);
+        }
         const propString = classMatch.cssProps.join(' ');
         styleString += propString;
     });
